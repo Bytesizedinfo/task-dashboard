@@ -23,41 +23,41 @@ It's plain HTML, CSS and JavaScript, so there is no build step. GitHub Pages ser
 
 ---
 
-## 1. Try it on your computer
+## 1. Run it on your computer (optional)
 
-You can preview the app before setting anything up. Open a terminal in this folder and run:
+To try changes locally, open a terminal in this folder and run:
 
 ```
 python -m http.server 8000
 ```
 
-Then open <http://localhost:8000>. Until you connect GitHub, the app saves tasks only in that browser.
+Then open <http://localhost:8000> and sign in with your access token (see below).
 
-## 2. Sync your tasks through GitHub
+## 2. Sign in (your tasks are stored in GitHub)
 
-Your tasks are saved as one file, `taskboard.json`, in a **private** GitHub repository that only you can see. Every browser you connect (phone, laptop, work computer) reads and writes that file, so they all show the same tasks. Each change is a commit, so GitHub also keeps a full history you can restore from.
+Opening Taskboard asks you to **sign in with your GitHub access token**. Your tasks are saved as one file, `taskboard.json`, in a **private** GitHub repository that only you can see, and every device you sign in on (phone, laptop, work computer) reads and writes that file, so they all show the same tasks. Each change is a commit, so GitHub also keeps a full history you can restore from.
 
-The app is **local-first**: changes save instantly in the browser and work offline, then sync in the background (within a couple of seconds, and whenever you come back to the app).
+Syncing is automatic: your changes upload within a couple of seconds, and changes from your other devices appear within about 30 seconds, or straight away when you switch back to the app. Each device also keeps a copy, so the app opens instantly and keeps working offline.
 
 ### One-time setup (about 2 minutes)
 
 1. **Create a private repository for your data** at <https://github.com/new>. Name it `task-dashboard-data`, choose **Private**, then click **Create repository**. This is separate from the public repository that hosts the website.
 2. **Create an access token** at <https://github.com/settings/personal-access-tokens/new> (Fine-grained tokens):
    - **Token name:** `Taskboard`.
-   - **Expiration:** as long as you're comfortable with. When it expires, the app shows **Sync paused** and you reconnect with a new token.
+   - **Expiration:** as long as you're comfortable with. When it expires, the app asks you to sign in again with a new token (changes on your device are kept).
    - **Repository access:** **Only select repositories**, then pick `task-dashboard-data`.
    - **Permissions → Repository permissions → Contents:** **Read and write**. Metadata (read-only) is added automatically.
    - Click **Generate token** and copy it (it starts with `github_pat_`).
-3. **Connect this browser:** open the app and click **Connect GitHub** (on the dashboard, or **Settings → Sync**). Paste the token, keep the repository name `task-dashboard-data`, and click **Connect**. If this browser already has tasks, you can bring them along.
+3. **Sign in:** open the app, paste the token, keep the repository name `task-dashboard-data`, and click **Sign in**. You stay signed in on that device. If the browser already had tasks from before sign-in was required, you can bring them along.
 
 ### Add your phone (or any other browser)
 
-On a connected computer, go to **Settings → Sync → Add another device**. Scan the QR code with your phone's camera and tap **Connect**. You can also copy the setup link and open it on the other device. This works from your GitHub Pages site, not from `localhost`.
+On a signed-in computer, go to **Settings → Account & sync → Add another device**. Scan the QR code with your phone's camera and tap **Sign in**. You can also copy the setup link and open it on the other device. This works from your GitHub Pages site, not from `localhost`.
 
 ### Good to know
 
-- **Security:** the token is stored only in the browsers you connect, never in any repository, and it can only reach `task-dashboard-data`. The QR code and setup link contain the token, so only scan them on your own devices. If a device is lost, delete the token on GitHub, create a new one, and reconnect.
-- **Disconnect** (**Settings → Sync**) makes a browser forget the token and its copy of your tasks. Your tasks stay safe in GitHub.
+- **Security:** the token is stored only on the devices you sign in on, never in any repository, and it can only reach `task-dashboard-data`. The website itself holds no tasks; without the token there's nothing to see. The QR code and setup link contain the token, so only scan them on your own devices. If a device is lost, delete the token on GitHub, create a new one, and sign in again.
+- **Sign out** (**Settings → Account & sync**) makes a device forget the token and its copy of your tasks. Your tasks stay safe in GitHub.
 - **When two devices change the same task** before syncing, the most recent change wins. Changes to different tasks are always combined.
 - **History:** open the repository on GitHub and click **History** on `taskboard.json` to see or restore earlier versions.
 
@@ -114,9 +114,8 @@ css/styles.css           all styling (colours are CSS variables; light theme inc
 js/app.js                start-up, routing, layout
 js/store.js              app data and actions (the only module views talk to)
 js/backend/github.js     GitHub sync: local-first cache + merge + read/write taskboard.json
-js/backend/local.js      before connecting: saves to this browser only
 js/views/                dashboard (panels), focus (Today's focus), list (list/board), today/upcoming
-js/components/           task cards, editors, quick-add, date menu, connect GitHub, search, settings, toasts, icons
+js/components/           task cards, editors, quick-add, date menu, sign-in, search, settings, toasts, icons
 sw.js                    offline support
 ```
 

@@ -1,6 +1,6 @@
 import { exportData, getState, importData, requestSync, subscribe, syncStatus } from '../store.js';
 import { loadGitHubConfig } from '../backend/github.js';
-import { disconnectGitHub, openAddDevice, openConnect } from './connect.js';
+import { openAddDevice, signOut } from './connect.js';
 import { openGoogleImport } from './googleImport.js';
 import { todayISO } from '../utils/dates.js';
 import { esc, plural, prefs } from '../utils/dom.js';
@@ -8,7 +8,7 @@ import { applyTheme, currentTheme } from '../utils/theme.js';
 import { ui } from '../ui-state.js';
 import { dailyGoal } from '../views/focus.js';
 import { avatarHtml } from './avatar.js';
-import { githubMark, icons } from './icons.js';
+import { icons } from './icons.js';
 import { confirmDialog, openOverlay } from './overlay.js';
 import { toast } from './toast.js';
 
@@ -33,24 +33,19 @@ export function openSettings() {
   const theme = currentTheme();
   const gh = loadGitHubConfig();
 
-  const syncSection =
-    st.mode === 'github' && gh
-      ? `<div class="account-row">${avatarHtml(st.user)}
+  const syncSection = gh
+    ? `<div class="account-row">${avatarHtml(st.user)}
           <div class="who"><strong>${esc(gh.owner)}/${esc(gh.repo)}</strong>
             <small class="sync-line">${syncLine()}</small></div>
           <a class="icon-btn" href="https://github.com/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/commits" target="_blank" rel="noopener" aria-label="Open history on GitHub" title="Open history on GitHub">${icons.external}</a>
         </div>
+        <p class="muted small">Changes sync automatically within a few seconds. Updates from your other devices appear within about 30 seconds, or straight away when you come back to the app.</p>
         <div class="row-actions">
           <button type="button" class="btn" data-act="sync-now">${icons.refresh}<span>Sync now</span></button>
           <button type="button" class="btn" data-act="add-device">${icons.qr}<span>Add another device</span></button>
-          ${st.syncErrorKind && ['auth', 'forbidden', 'notfound'].includes(st.syncErrorKind) ? `<button type="button" class="btn btn-primary" data-act="reconnect">${githubMark}<span>Reconnect</span></button>` : ''}
-          <button type="button" class="btn btn-ghost danger-text" data-act="disconnect">${icons.logout}<span>Disconnect</span></button>
+          <button type="button" class="btn btn-ghost danger-text" data-act="sign-out">${icons.logout}<span>Sign out</span></button>
         </div>`
-      : `<div class="account-row"><span class="avatar">${icons.cloud}</span>
-          <div class="who"><strong>This browser only</strong><small>Tasks are saved here and nowhere else yet.</small></div>
-        </div>
-        <p class="muted small">Connect GitHub to keep the same tasks in every browser: your phone, laptop and work computer. Everything is stored in a private repository that only you can see.</p>
-        <div class="row-actions"><button type="button" class="btn btn-primary" data-act="connect">${githubMark}<span>Connect GitHub</span></button></div>`;
+    : '';
 
   let unsubscribe = () => {};
   const o = openOverlay({
@@ -59,7 +54,7 @@ export function openSettings() {
     html: `<div class="sheet-grabber" aria-hidden="true"></div>
       <header class="sheet-head"><h2>Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close">${icons.x}</button></header>
       <div class="sheet-body">
-        <section class="settings-section"><h3 class="field-label">Sync</h3>${syncSection}</section>
+        <section class="settings-section"><h3 class="field-label">Account &amp; sync</h3>${syncSection}</section>
         <section class="settings-section"><h3 class="field-label">Appearance</h3>
           <div class="seg full" data-group="theme" role="radiogroup" aria-label="Theme">
             <button type="button" role="radio" data-value="dark" aria-checked="${theme === 'dark'}" class="${theme === 'dark' ? 'on' : ''}">${icons.moon}Dark</button>
@@ -131,17 +126,9 @@ export function openSettings() {
     o.close(true);
     openAddDevice();
   });
-  el.querySelector('[data-act="connect"]')?.addEventListener('click', () => {
+  el.querySelector('[data-act="sign-out"]')?.addEventListener('click', () => {
     o.close(true);
-    openConnect();
-  });
-  el.querySelector('[data-act="reconnect"]')?.addEventListener('click', () => {
-    o.close(true);
-    openConnect();
-  });
-  el.querySelector('[data-act="disconnect"]')?.addEventListener('click', () => {
-    o.close(true);
-    disconnectGitHub();
+    signOut();
   });
 
   el.querySelector('[data-act="export"]').addEventListener('click', () => {

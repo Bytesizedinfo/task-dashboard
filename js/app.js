@@ -1,7 +1,6 @@
 import * as store from './store.js';
-import { createLocalBackend } from './backend/local.js';
 import { createGitHubBackend, loadGitHubConfig } from './backend/github.js';
-import { consumeSetupLink, openConnect } from './components/connect.js';
+import { consumeSetupLink, renderLogin } from './components/connect.js';
 import { ui } from './ui-state.js';
 import { colorHex } from './constants.js';
 import { esc, prefs } from './utils/dom.js';
@@ -24,6 +23,7 @@ import { renderBoot, renderMessage } from './views/auth.js';
 
 const appEl = document.getElementById('app');
 
+let signedIn = false;
 let route = parseRoute();
 let routeChanged = true;
 let shell = null; // { sidebar, view, tabbar } once the main layout is on screen
@@ -55,15 +55,29 @@ function scheduleRender() {
   });
 }
 
+// Sync problems that only a new token can fix send you back to the sign-in screen.
+const SIGN_IN_AGAIN = {
+  auth: 'Your access token has expired or was removed. Sign in again with a new token. Changes made on this device are kept and will sync.',
+  forbidden: 'Your access token isn’t allowed to change this repository. Create a token with “Contents: Read and write” for it, then sign in again.',
+  notfound: 'The repository can’t be found with this token. Check its name, or create a token that has access to it.',
+};
+
 function render() {
+  if (!signedIn) return; // the sign-in screen is showing
   const st = store.getState();
+  if (st.syncError && SIGN_IN_AGAIN[st.syncErrorKind]) {
+    showSignIn({ notice: SIGN_IN_AGAIN[st.syncErrorKind] });
+    return;
+  }
   if (st.error) {
     teardownShell();
     renderError(st.error);
     return;
   }
-  if (!st.ready) {
-    if (!shell) renderBoot(appEl);
+  // First visit on this device: wait for the tasks to arrive from GitHub.
+  const firstLoad = !st.synced && !st.tasks.length && !st.categories.length && !st.offline && !st.syncError;
+  if (!st.ready || firstLoad) {
+    if (!shell) renderBoot(appEl, firstLoad ? 'Loading your tasks from GitHub…' : '');
     return;
   }
   if (ui.dragging) return; // re-rendered when the drag ends
@@ -108,10 +122,7 @@ function sidebarHtml(st) {
   const active = (name, id) => (route.name === name && (!id || route.id === id) ? ' active' : '');
   const sync = store.syncStatus();
 
-  const who =
-    st.mode === 'local'
-      ? `<span class="avatar">${icons.cloud}</span><span class="who"><strong>This browser only</strong><small><span class="sync-dot local"></span>Connect GitHub to sync</small></span>`
-      : `${avatarHtml(st.user)}<span class="who"><strong>${esc(st.user?.displayName || 'GitHub')}</strong><small><span class="sync-dot ${sync.cls}"></span>${esc(sync.text)}</small></span>`;
+  const who = `${avatarHtml(st.user)}<span class="who"><strong>${esc(st.user?.displayName || 'GitHub')}</strong><small><span class="sync-dot ${sync.cls}"></span>${esc(sync.text)}</small></span>`;
 
   return `
     <a class="brand" href="#/">${logo('side')}<span>Taskboard</span></a>
@@ -321,9 +332,6 @@ document.addEventListener('click', (e) => {
     case 'settings':
       openSettings();
       break;
-    case 'connect-github':
-      openConnect();
-      break;
     case 'sync-now':
       store.requestSync();
       break;
@@ -392,28 +400,40 @@ store.onWriteError((err) => {
   toast('Couldn’t save that change.', { tone: 'error' });
 });
 
+/** Shows the sign-in screen (instead of the app) until this device has a working access token. */
+function showSignIn(opts = {}) {
+  signedIn = false;
+  closeAllOverlays();
+  store.disconnect(); // stop syncing; this device's copy of the tasks stays saved for after sign-in
+  teardownShell();
+  renderLogin(appEl, opts);
+}
+
 function boot() {
   applyTheme(prefs.get('theme', 'dark'));
   store.subscribe(scheduleRender);
 
-  // A setup link from another device ("#connect=…", usually via QR code) pre-fills the Connect sheet.
+  // A setup link from another device ("#connect=…", usually via QR code) pre-fills the sign-in form.
   const setup = consumeSetupLink();
-
-  // Connected to GitHub → sync through the private repo. Otherwise → this browser only (preview mode).
   const gh = loadGitHubConfig();
-  if (gh) {
-    store.connect(createGitHubBackend(gh), {
-      uid: `gh:${gh.owner}/${gh.repo}`,
-      displayName: gh.login || gh.owner,
-      email: `${gh.owner}/${gh.repo}`,
-      photoURL: gh.avatar || '',
-    });
-  } else {
-    store.connect(createLocalBackend());
+
+  if (setup && !setup.invalid) {
+    showSignIn({ token: setup.token, repo: `${setup.owner}/${setup.repo}`, fromLink: true });
+    return;
+  }
+  if (!gh) {
+    showSignIn({ notice: setup?.invalid ? 'That setup link is incomplete. Copy it again from your other device, or paste your token below.' : '' });
+    return;
   }
 
-  if (setup?.invalid) setTimeout(() => toast('That setup link is incomplete. Copy it again from your other device.', { tone: 'error' }), 400);
-  else if (setup) setTimeout(() => openConnect({ token: setup.token, repo: `${setup.owner}/${setup.repo}`, fromLink: true }), 400);
+  // Signed in: tasks load from this device's copy straight away and sync with GitHub in the background.
+  signedIn = true;
+  store.connect(createGitHubBackend(gh), {
+    uid: `gh:${gh.owner}/${gh.repo}`,
+    displayName: gh.login || gh.owner,
+    email: `${gh.owner}/${gh.repo}`,
+    photoURL: gh.avatar || '',
+  });
 }
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

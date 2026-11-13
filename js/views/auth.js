@@ -1,8 +1,10 @@
 import { esc } from '../utils/dom.js';
 import { logo } from '../components/icons.js';
 
-export function renderBoot(root) {
-  root.innerHTML = '<div class="boot"><div class="spinner" role="status" aria-label="Loading"></div></div>';
+export function renderBoot(root, message = '') {
+  root.innerHTML = `<div class="boot"><div class="boot-inner"><div class="spinner" role="status" aria-label="Loading"></div>${
+    message ? `<p class="muted">${esc(message)}</p>` : ''
+  }</div></div>`;
 }
 
 /** Full-screen message with buttons, used if the app can't start. */

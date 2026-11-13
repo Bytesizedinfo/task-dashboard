@@ -279,7 +279,9 @@ export function parseSetupLink(hash) {
  * opts.fetchImpl / cacheKey / debounceMs / pollMs / autoTriggers exist for testing.
  */
 export function createGitHubBackend(config, opts = {}) {
-  const { fetchImpl = (...a) => fetch(...a), cacheKey = CACHE_KEY, debounceMs = 1500, pollMs = 60000, autoTriggers = true } = opts;
+  // Changes upload ~1.5 s after you make them; other devices' changes are fetched every 30 s while the
+  // app is open, and immediately when you switch back to it.
+  const { fetchImpl = (...a) => fetch(...a), cacheKey = CACHE_KEY, debounceMs = 1500, pollMs = 30000, autoTriggers = true } = opts;
   const gh = client(config, fetchImpl);
 
   let cache = loadCache();

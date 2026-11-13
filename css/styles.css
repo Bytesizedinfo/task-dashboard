@@ -3198,7 +3198,60 @@ select.input option {
   color: var(--text-2);
 }
 
-/* ---------- GitHub sync: connect sheet, callouts, QR ---------- */
+/* ---------- Sign-in screen ---------- */
+
+.login-card {
+  max-width: 460px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.token-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.token-row .icon-btn {
+  flex: none;
+  border: 1px solid var(--border);
+  background: var(--field);
+}
+
+.login-btn {
+  height: 48px;
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.login-btn .i {
+  width: 18px;
+  height: 18px;
+}
+
+.boot-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.boot-inner p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ---------- GitHub sync: callouts, QR ---------- */
 
 .with-icon {
   display: flex;

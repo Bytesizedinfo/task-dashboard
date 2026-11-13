@@ -5,7 +5,7 @@ import { colorHex } from '../constants.js';
 import { dueLabel, dueTone, greeting, longDate, todayISO } from '../utils/dates.js';
 import { esc, plural, prefs } from '../utils/dom.js';
 import { loadSortable } from '../utils/sortable.js';
-import { githubMark, icons } from '../components/icons.js';
+import { icons } from '../components/icons.js';
 import { ring } from '../components/ring.js';
 import { toast } from '../components/toast.js';
 import { ui } from '../ui-state.js';
@@ -126,16 +126,12 @@ export function renderDashboard() {
     }`;
 }
 
-/** Preview mode → invite to connect GitHub. Sync problems → say what's wrong and how to fix it. */
+/** A sync problem that will sort itself out (GitHub busy, a clash with another device): say so, offer a retry.
+ *  Token problems don't get here: they send you back to the sign-in screen. */
 function syncBanner(st) {
-  if (st.mode === 'local') {
-    return `<div class="banner">${icons.cloud}<span><strong>Saved in this browser only.</strong> Connect GitHub to see the same tasks on all your devices.</span>
-      <button type="button" class="btn btn-primary sm banner-btn" data-action="connect-github">${githubMark}<span>Connect GitHub</span></button></div>`;
-  }
   if (st.syncError) {
-    const reconnect = ['auth', 'forbidden', 'notfound'].includes(st.syncErrorKind);
-    return `<div class="banner banner-error" role="alert">${icons.alert}<span><strong>Sync paused.</strong> ${esc(st.syncError)} Your changes are safe in this browser.</span>
-      <button type="button" class="btn sm banner-btn" data-action="${reconnect ? 'connect-github' : 'sync-now'}">${reconnect ? 'Reconnect' : 'Try again'}</button></div>`;
+    return `<div class="banner banner-error" role="alert">${icons.alert}<span><strong>Sync paused.</strong> ${esc(st.syncError)} Your changes are safe on this device.</span>
+      <button type="button" class="btn sm banner-btn" data-action="sync-now">Try again</button></div>`;
   }
   return '';
 }
