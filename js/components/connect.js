@@ -103,7 +103,7 @@ export function renderLogin(root, { token = '', repo = '', fromLink = false, not
     const sameRepo = current && current.owner === v.owner && current.repo === v.repo;
     if (!sameRepo) clearGitHubConfig(); // a different repo starts from a clean copy; the same repo keeps unsynced changes
     if (migrate) migrateLocalData();
-    saveGitHubConfig({ owner: v.owner, repo: v.repo, token: v.token, login: v.login, avatar: v.avatar });
+    saveGitHubConfig({ owner: v.owner, repo: v.repo, token: v.token, login: v.login, avatar: v.avatar, signedInAt: Date.now() });
     connectEnv.reload();
   }
 

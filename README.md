@@ -61,6 +61,25 @@ On a signed-in computer, go to **Settings → Account & sync → Add another dev
 - **When two devices change the same task** before syncing, the most recent change wins. Changes to different tasks are always combined.
 - **History:** open the repository on GitHub and click **History** on `taskboard.json` to see or restore earlier versions.
 
+### How long things are kept
+
+| What | Where | How long |
+| --- | --- | --- |
+| Your tasks and lists | `taskboard.json` in your private GitHub repo | Until you delete them. GitHub's history keeps every earlier version for as long as the repository exists. |
+| Deleted tasks and lists | the same file | Kept as small "deleted" markers for 30 days so every device hears about the deletion, then removed. Earlier versions stay in GitHub's history. |
+| Your sign-in (token + repo) | this browser's storage on each device | Until you **sign out**, clear the browser's data for the site, or the token expires. A private/incognito window forgets it when closed. |
+| The token itself | GitHub | Until the expiry date you picked when creating it (fine-grained tokens usually last up to a year). See and renew it at [GitHub → Fine-grained tokens](https://github.com/settings/personal-access-tokens). |
+| Device copy of your tasks, theme, layout | this browser's storage | Same as the sign-in. It's a copy; the real tasks are in GitHub. |
+
+**iPhone/iPad:** Safari may clear a website's saved data after about 7 days of using Safari without opening the site. Adding Taskboard to your home screen avoids this, because home-screen apps keep their own data.
+
+## Delete lists and tasks
+
+- **One task:** hover over it and click the bin, or open it and click **Delete**.
+- **A list:** **Settings → Lists & tasks**, then the bin next to the list (or the pencil on the list's page → **Delete**). You choose whether its tasks move to another list or are deleted too.
+- **All completed tasks, or everything:** **Settings → Lists & tasks**.
+- Every delete can be undone straight after (the **Undo** button), and GitHub's history keeps earlier versions.
+
 ## Bring over your Google Tasks
 
 1. Open [Google Takeout](https://takeout.google.com/settings/takeout/custom/tasks). Tick only **Tasks**, click **Next step**, then **Create export**. Google emails a download link, usually within minutes.

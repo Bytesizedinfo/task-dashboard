@@ -190,6 +190,33 @@ export function restoreTask(task) {
   run(backend.put('tasks', task.id, withoutId(task)));
 }
 
+/** Deletes several tasks at once and returns copies for "Undo". */
+export function deleteTasks(ids) {
+  const removed = ids.map(findTask).filter(Boolean).map((t) => ({ ...t }));
+  if (removed.length) run(backend.batch(removed.map((t) => ({ op: 'remove', kind: 'tasks', id: t.id }))));
+  return removed;
+}
+
+/** Deletes every list and task (on all devices, through sync). Returns a copy for "Undo". */
+export function deleteEverything() {
+  const snapshot = { tasks: state.tasks.map((t) => ({ ...t })), categories: state.categories.map((c) => ({ ...c })) };
+  const ops = [
+    ...snapshot.tasks.map((t) => ({ op: 'remove', kind: 'tasks', id: t.id })),
+    ...snapshot.categories.map((c) => ({ op: 'remove', kind: 'categories', id: c.id })),
+  ];
+  if (ops.length) run(backend.batch(ops));
+  return snapshot;
+}
+
+/** Puts lists and tasks back exactly as they were (used by "Undo"). */
+export function restoreSnapshot({ tasks = [], categories = [] }) {
+  const ops = [
+    ...categories.map((c) => ({ op: 'put', kind: 'categories', id: c.id, data: withoutId(c) })),
+    ...tasks.map((t) => ({ op: 'put', kind: 'tasks', id: t.id, data: withoutId(t) })),
+  ];
+  if (ops.length) run(backend.batch(ops));
+}
+
 export function toggleFocus(id) {
   const t = findTask(id);
   if (t) updateTask(id, { focus: !t.focus });

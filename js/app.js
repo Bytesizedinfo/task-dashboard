@@ -305,6 +305,13 @@ document.addEventListener('click', (e) => {
       if (id) openDateMenu(el, id);
       break;
     }
+    case 'delete-task': {
+      e.stopPropagation();
+      const id = taskIdFor(el);
+      const removed = id && store.deleteTask(id);
+      if (removed) toast('Task deleted', { action: 'Undo', onAction: () => store.restoreTask(removed) });
+      break;
+    }
     case 'start-task': {
       const id = taskIdFor(el);
       if (!id) return;
@@ -428,6 +435,8 @@ function boot() {
 
   // Signed in: tasks load from this device's copy straight away and sync with GitHub in the background.
   signedIn = true;
+  // Ask the browser to keep this site's data (sign-in + task copy) even when the device runs low on space.
+  navigator.storage?.persisted?.().then((kept) => kept || navigator.storage.persist()).catch(() => {});
   store.connect(createGitHubBackend(gh), {
     uid: `gh:${gh.owner}/${gh.repo}`,
     displayName: gh.login || gh.owner,

@@ -1393,6 +1393,76 @@ a.stat:hover {
   color: var(--prio-med);
 }
 
+.t-del:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+/* Settings → Lists & tasks */
+.manage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manage p {
+  margin: 0;
+}
+
+.manage p .i {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+}
+
+.manage-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.manage-lists li {
+  --accent: var(--brand);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--field);
+}
+
+.manage-lists .dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.manage-lists .ml-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.manage-lists .ml-count {
+  color: var(--text-2);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.manage-lists .icon-btn:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
 @media (hover: none) {
   .task .t-act {
     display: none;

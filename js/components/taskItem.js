@@ -34,7 +34,7 @@ export function taskItem(t, { showCategory = false, board = false } = {}) {
       <div class="task-title">${esc(t.title)}</div>
       ${meta.length ? `<div class="task-meta">${meta.join('')}</div>` : ''}
     </div>
-    ${done ? '' : taskActions(t)}
+    ${done ? `<div class="task-actions"><button type="button" class="t-act t-del" data-action="delete-task" aria-label="Delete task" title="Delete task">${icons.trash}</button></div>` : taskActions(t)}
   </div>`;
 }
 
@@ -44,6 +44,7 @@ export function taskActions(t) {
   return `<div class="task-actions">
     <button type="button" class="t-act t-star${t.focus ? ' on' : ''}" data-action="star" aria-pressed="${t.focus}" aria-label="${starLabel}" title="${starLabel}">${icons.star}</button>
     <button type="button" class="t-act" data-action="due-menu" aria-label="Change due date" title="Change due date">${icons.calendar}</button>
+    <button type="button" class="t-act t-del" data-action="delete-task" aria-label="Delete task" title="Delete task">${icons.trash}</button>
   </div>`;
 }
 

@@ -1,4 +1,4 @@
-import { addCategory, deleteCategory, findCategory, getState, updateCategory } from '../store.js';
+import { addCategory, deleteCategory, findCategory, getState, restoreSnapshot, updateCategory } from '../store.js';
 import { colorHex, EMOJIS, PALETTE } from '../constants.js';
 import { esc, plural } from '../utils/dom.js';
 import { icons } from './icons.js';
@@ -116,7 +116,8 @@ export function openCategoryEditor({ categoryId = null } = {}) {
   setTimeout(() => nameInput.focus(), 60);
 }
 
-async function confirmDeleteCategory(cat) {
+/** Asks what to do with the list's tasks, deletes the list, and offers Undo. */
+export async function confirmDeleteCategory(cat) {
   const st = getState();
   const count = st.tasks.filter((t) => t.categoryId === cat.id).length;
   const others = st.categories.filter((c) => c.id !== cat.id);
@@ -141,7 +142,9 @@ async function confirmDeleteCategory(cat) {
   });
   if (!res) return;
   const moveTo = count && res.values.fate === 'move' ? res.values.moveTo : null;
+  // Keep copies so "Undo" can put the list (and its tasks, moved or deleted) back exactly as they were.
+  const snapshot = { categories: [{ ...cat }], tasks: getState().tasks.filter((t) => t.categoryId === cat.id).map((t) => ({ ...t })) };
   deleteCategory(cat.id, { moveTo });
   if (location.hash === '#/c/' + encodeURIComponent(cat.id)) location.hash = '#/';
-  toast(`Deleted “${cat.name}”`);
+  toast(`Deleted “${cat.name}”`, { action: 'Undo', timeout: 7000, onAction: () => restoreSnapshot(snapshot) });
 }

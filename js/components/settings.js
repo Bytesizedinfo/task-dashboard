@@ -1,4 +1,6 @@
-import { exportData, getState, importData, requestSync, subscribe, syncStatus } from '../store.js';
+import { deleteEverything, deleteTasks, exportData, findCategory, getState, importData, requestSync, restoreSnapshot, subscribe, syncStatus } from '../store.js';
+import { colorHex } from '../constants.js';
+import { confirmDeleteCategory } from './categoryEditor.js';
 import { loadGitHubConfig } from '../backend/github.js';
 import { openAddDevice, signOut } from './connect.js';
 import { openGoogleImport } from './googleImport.js';
@@ -40,6 +42,9 @@ export function openSettings() {
           <a class="icon-btn" href="https://github.com/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/commits" target="_blank" rel="noopener" aria-label="Open history on GitHub" title="Open history on GitHub">${icons.external}</a>
         </div>
         <p class="muted small">Changes sync automatically within a few seconds. Updates from your other devices appear within about 30 seconds, or straight away when you come back to the app.</p>
+        <p class="muted small">${
+          gh.signedInAt ? `Signed in on this device since ${esc(new Date(gh.signedInAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }))}. ` : ''
+        }You stay signed in until you sign out, clear this browser’s data for the site, or your token expires.</p>
         <div class="row-actions">
           <button type="button" class="btn" data-act="sync-now">${icons.refresh}<span>Sync now</span></button>
           <button type="button" class="btn" data-act="add-device">${icons.qr}<span>Add another device</span></button>
@@ -68,6 +73,9 @@ export function openSettings() {
             <button type="button" class="icon-btn" data-act="goal-inc" aria-label="Raise the goal">${icons.plus}</button>
             <span class="muted small">tasks a day: fills the ring on the Today page</span>
           </div>
+        </section>
+        <section class="settings-section"><h3 class="field-label">Lists &amp; tasks</h3>
+          <div class="manage"></div>
         </section>
         <section class="settings-section"><h3 class="field-label">Backup</h3>
           <p class="muted small">You have ${st.categories.length} ${plural(st.categories.length, 'list')} and ${st.tasks.length} ${plural(st.tasks.length, 'task')}.</p>
@@ -105,9 +113,72 @@ export function openSettings() {
   el.querySelector('[data-act="goal-dec"]').addEventListener('click', () => stepGoal(-1));
   el.querySelector('[data-act="goal-inc"]').addEventListener('click', () => stepGoal(1));
 
-  // Sync controls
+  // Lists & tasks: delete a list, completed tasks, or everything (each with Undo). Redrawn as data changes.
+  const manage = el.querySelector('.manage');
+  const drawManage = () => {
+    const s = getState();
+    const done = s.tasks.filter((t) => t.status === 'done').length;
+    manage.innerHTML = `
+      ${
+        s.categories.length
+          ? `<ul class="manage-lists">${s.categories
+              .map((c) => {
+                const n = s.tasks.filter((t) => t.categoryId === c.id);
+                const open = n.filter((t) => t.status !== 'done').length;
+                return `<li style="--accent:${colorHex(c.color)}"><span class="dot"></span><span class="ml-name">${esc(c.icon)} ${esc(c.name)}</span>
+                  <span class="ml-count">${open} open${n.length - open ? ` · ${n.length - open} done` : ''}</span>
+                  <button type="button" class="icon-btn sm" data-del-list="${esc(c.id)}" aria-label="Delete list ${esc(c.name)}" title="Delete list">${icons.trash}</button></li>`;
+              })
+              .join('')}</ul>`
+          : '<p class="muted small">You have no lists.</p>'
+      }
+      <div class="row-actions">
+        <button type="button" class="btn" data-act="del-done"${done ? '' : ' disabled'}>${icons.checkCircle}<span>Delete ${done} completed ${plural(done, 'task')}</span></button>
+        <button type="button" class="btn btn-ghost danger-text" data-act="del-all"${s.tasks.length || s.categories.length ? '' : ' disabled'}>${icons.trash}<span>Delete everything</span></button>
+      </div>
+      <p class="muted small">To delete one task, open it and tap <strong>Delete</strong> (on a computer you can also hover over it and click ${icons.trash}). Every delete can be undone straight after, and GitHub keeps earlier versions in its history.</p>`;
+  };
+  drawManage();
+  manage.addEventListener('click', async (e) => {
+    const listBtn = e.target.closest('[data-del-list]');
+    if (listBtn) {
+      const cat = findCategory(listBtn.dataset.delList);
+      if (cat) confirmDeleteCategory(cat);
+      return;
+    }
+    if (e.target.closest('[data-act="del-done"]')) {
+      const ids = getState().tasks.filter((t) => t.status === 'done').map((t) => t.id);
+      const ok = await confirmDialog({
+        title: `Delete ${ids.length} completed ${plural(ids.length, 'task')}?`,
+        message: 'They’re removed from every list and on all your devices.',
+        confirmLabel: 'Delete',
+        danger: true,
+      });
+      if (!ok) return;
+      const removed = deleteTasks(ids);
+      toast(`Deleted ${removed.length} completed ${plural(removed.length, 'task')}`, { action: 'Undo', timeout: 7000, onAction: () => restoreSnapshot({ tasks: removed }) });
+      return;
+    }
+    if (e.target.closest('[data-act="del-all"]')) {
+      const s = getState();
+      const ok = await confirmDialog({
+        title: 'Delete everything?',
+        message: `This deletes all ${s.categories.length} ${plural(s.categories.length, 'list')} and ${s.tasks.length} ${plural(s.tasks.length, 'task')} on all your devices. You can undo it straight after, and GitHub keeps earlier versions in its history.`,
+        confirmLabel: 'Delete everything',
+        danger: true,
+      });
+      if (!ok) return;
+      const snapshot = deleteEverything();
+      toast('Deleted all lists and tasks', { action: 'Undo', timeout: 10000, onAction: () => restoreSnapshot(snapshot) });
+    }
+  });
+
+  // Sync controls (and keep the sections above up to date while Settings is open)
   const line = el.querySelector('.sync-line');
-  if (line) unsubscribe = subscribe(() => (line.innerHTML = syncLine()));
+  unsubscribe = subscribe(() => {
+    if (line) line.innerHTML = syncLine();
+    drawManage();
+  });
   el.querySelector('[data-act="sync-now"]')?.addEventListener('click', async (e) => {
     const b = e.currentTarget;
     b.disabled = true;
