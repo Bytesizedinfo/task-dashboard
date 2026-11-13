@@ -1,7 +1,7 @@
 // Service worker: lets the app open offline and install to the home screen.
 // App files are network-first (so updates show up straight away) with the cache as an offline fallback.
 // Versioned CDN files (SortableJS, QR code, fonts) are cache-first. GitHub API calls are never cached.
-const APP_CACHE = 'td-app-v3';
+const APP_CACHE = 'td-app-v4';
 const CDN_CACHE = 'td-cdn-v1';
 
 const APP_FILES = [
@@ -21,6 +21,7 @@ const APP_FILES = [
   './js/components/categoryEditor.js',
   './js/components/connect.js',
   './js/components/dateMenu.js',
+  './js/components/googleImport.js',
   './js/components/icons.js',
   './js/components/overlay.js',
   './js/components/quickAdd.js',
@@ -32,6 +33,7 @@ const APP_FILES = [
   './js/components/toast.js',
   './js/utils/dates.js',
   './js/utils/dom.js',
+  './js/utils/googleTasks.js',
   './js/utils/quickadd.js',
   './js/utils/sortable.js',
   './js/utils/theme.js',

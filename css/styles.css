@@ -3414,6 +3414,81 @@ h2.with-icon > .i {
   white-space: normal;
 }
 
+/* ---------- Import from Google Tasks ---------- */
+
+.gimport .gi-step1,
+.gimport .gi-step2 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.steps-list {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.steps-list li + li {
+  margin-top: 8px;
+}
+
+.steps-list a {
+  color: var(--brand-soft);
+  font-weight: 600;
+}
+
+.steps-list strong {
+  color: var(--text);
+}
+
+.file-btn {
+  height: 46px;
+  cursor: pointer;
+}
+
+.gi-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.gi-lists li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--field);
+}
+
+.gi-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.gi-count {
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.settings-section > .btn {
+  align-self: flex-start;
+}
+
 /* ---------- phone tab bar + floating button ---------- */
 
 .tabbar,

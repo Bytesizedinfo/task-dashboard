@@ -17,7 +17,7 @@ A personal task dashboard with a dark, sleek look. It works on phone and desktop
 - **Quick add:** type `Book dentist +Personal #health !high @friday`. Chips under the box show what it understood (list, date, priority, tags) before you press Enter.
 - **Search** across tasks, notes, tags and lists.
 - **Works offline** and can be installed on your phone's home screen.
-- **Backup:** export and import your tasks as a file (Settings).
+- **Backup:** export and import your tasks as a file (Settings), and **import from Google Tasks**.
 
 It's plain HTML, CSS and JavaScript, so there is no build step. GitHub Pages serves the files as they are.
 
@@ -60,6 +60,16 @@ On a connected computer, go to **Settings → Sync → Add another device**. Sca
 - **Disconnect** (**Settings → Sync**) makes a browser forget the token and its copy of your tasks. Your tasks stay safe in GitHub.
 - **When two devices change the same task** before syncing, the most recent change wins. Changes to different tasks are always combined.
 - **History:** open the repository on GitHub and click **History** on `taskboard.json` to see or restore earlier versions.
+
+## Bring over your Google Tasks
+
+1. Open [Google Takeout](https://takeout.google.com/settings/takeout/custom/tasks). Tick only **Tasks**, click **Next step**, then **Create export**. Google emails a download link, usually within minutes.
+2. In Taskboard, go to **Settings → Backup → Import from Google Tasks** and choose the downloaded **.zip** (or the `Tasks.json` inside it).
+3. Check the preview, then click **Import**.
+
+- Each Google Tasks list becomes a Taskboard list. Titles, notes, links, due dates and completed status come over. Subtasks become normal tasks, noted with their parent.
+- The file is read in your browser and isn't uploaded anywhere. Once imported, your tasks sync through GitHub like any others.
+- You can import a newer export later: only new tasks are added, and anything you've changed in Taskboard is left alone.
 
 ## 3. Publish on GitHub Pages
 

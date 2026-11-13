@@ -1,6 +1,7 @@
 import { exportData, getState, importData, requestSync, subscribe, syncStatus } from '../store.js';
 import { loadGitHubConfig } from '../backend/github.js';
 import { disconnectGitHub, openAddDevice, openConnect } from './connect.js';
+import { openGoogleImport } from './googleImport.js';
 import { todayISO } from '../utils/dates.js';
 import { esc, plural, prefs } from '../utils/dom.js';
 import { applyTheme, currentTheme } from '../utils/theme.js';
@@ -80,6 +81,7 @@ export function openSettings() {
             <button type="button" class="btn" data-act="import">${icons.upload}<span>Import</span></button>
             <input type="file" accept="application/json,.json" hidden>
           </div>
+          <button type="button" class="btn" data-act="google-import">${icons.upload}<span>Import from Google Tasks</span></button>
         </section>
         <section class="settings-section desktop-only"><h3 class="field-label">Keyboard shortcuts</h3>
           <div class="kbd-list"><kbd>N</kbd><span>New task</span><kbd>/</kbd><span>Search</span><kbd>Ctrl K</kbd><span>Search from anywhere</span><kbd>Ctrl Enter</kbd><span>Save a task</span><kbd>Esc</kbd><span>Close</span></div>
@@ -120,6 +122,10 @@ export function openSettings() {
     toast(s.syncError ? 'Sync is paused. See the message above.' : s.offline ? 'Offline. Will sync when you’re back online.' : 'Synced with GitHub', {
       tone: s.syncError ? 'error' : '',
     });
+  });
+  el.querySelector('[data-act="google-import"]').addEventListener('click', () => {
+    o.close(true);
+    openGoogleImport();
   });
   el.querySelector('[data-act="add-device"]')?.addEventListener('click', () => {
     o.close(true);
