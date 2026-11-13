@@ -33,6 +33,19 @@ export function diffDays(iso, base = todayISO()) {
   return Math.round((ua - ub) / 86400000);
 }
 
+/** Monday of the week containing `iso`. */
+export function weekStartISO(iso) {
+  const d = fromISO(iso);
+  return addDays(iso, -((d.getDay() + 6) % 7));
+}
+
+/** Short date like "16 Nov" (with the year when it isn't this year). */
+export function shortDate(iso, today = todayISO()) {
+  const d = fromISO(iso);
+  const sameYear = d.getFullYear() === fromISO(today).getFullYear();
+  return d.toLocaleDateString(undefined, sameYear ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 /** Next given weekday (0 = Sunday … 6 = Saturday), always in the future. */
 export function nextWeekday(target, base = todayISO()) {
   const cur = fromISO(base).getDay();

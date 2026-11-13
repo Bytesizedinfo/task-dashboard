@@ -10,12 +10,14 @@ import { ring } from '../components/ring.js';
 import { toast } from '../components/toast.js';
 import { ui } from '../ui-state.js';
 import { focusPanel, mountFocus } from './focus.js';
+import { upcomingPanel } from './agenda.js';
 
 // Desktop: stat tiles across the top; big list cards on the left (2 columns); Focus today on the right.
 const PANELS = {
   glance: { title: 'At a glance', span: 'full', render: glancePanel },
   lists: { title: 'Your lists', span: 'wide', render: listsPanel },
   focus: { title: 'Focus today', span: 'narrow', render: () => `<div class="panel focus-panel focus-side">${focusPanel({ cap: 6, variant: 'side' })}</div>` },
+  upcoming: { title: 'Upcoming', span: 'wide', render: upcomingPanel },
 };
 const DEFAULT_LAYOUT = Object.keys(PANELS).map((id) => ({ id, hidden: false }));
 const LAYOUT_PREF = 'dash.layout.v2'; // new key, so layouts saved for the previous design don't carry over

@@ -12,18 +12,20 @@ import { toast } from './components/toast.js';
 import { closeAllOverlays, hasOverlay } from './components/overlay.js';
 import { openTaskEditor } from './components/taskEditor.js';
 import { openCategoryEditor } from './components/categoryEditor.js';
-import { openSearch } from './components/search.js';
+import { mountSearchBar, searchBarHtml } from './components/searchBar.js';
+import { setListFilter } from './components/listFilter.js';
 import { openSettings } from './components/settings.js';
 import { closeDateMenu, openDateMenu } from './components/dateMenu.js';
 import { dashboardAction, mountDashboard, renderDashboard, stopCustomizing } from './views/dashboard.js';
 import { categoryAction, categoryTitle, mountCategory, renderCategory } from './views/category.js';
-import { renderToday, renderUpcoming } from './views/agenda.js';
+import { renderToday, renderUpcoming, upcomingAction, upcomingRangeChange } from './views/agenda.js';
 import { mountFocus } from './views/focus.js';
 import { renderBoot, renderMessage } from './views/auth.js';
 
 const appEl = document.getElementById('app');
 
 let signedIn = false;
+let searchBar = null; // the search bar at the top of every page
 let route = parseRoute();
 let routeChanged = true;
 let shell = null; // { sidebar, view, tabbar } once the main layout is on screen
@@ -90,11 +92,15 @@ function mountShell() {
   appEl.innerHTML = `
     <div class="shell">
       <aside class="sidebar" aria-label="Navigation"></aside>
-      <main class="main" id="main" tabindex="-1"></main>
+      <main class="main" id="main" tabindex="-1">
+        ${searchBarHtml()}
+        <div class="view"></div>
+      </main>
     </div>
     <nav class="tabbar" aria-label="Navigation"></nav>
     <button type="button" class="fab" data-action="new-task" aria-label="New task">${icons.plus}</button>`;
-  shell = { sidebar: appEl.querySelector('.sidebar'), view: appEl.querySelector('.main'), tabbar: appEl.querySelector('.tabbar') };
+  shell = { sidebar: appEl.querySelector('.sidebar'), view: appEl.querySelector('.view'), tabbar: appEl.querySelector('.tabbar') };
+  searchBar = mountSearchBar(appEl.querySelector('.main'));
   lastChrome = { sidebar: '', tabbar: '' };
   routeChanged = true;
 }
@@ -334,7 +340,7 @@ document.addEventListener('click', (e) => {
       openCategoryEditor({ categoryId: el.dataset.id });
       break;
     case 'search':
-      openSearch();
+      searchBar?.focus();
       break;
     case 'settings':
       openSettings();
@@ -350,9 +356,18 @@ document.addEventListener('click', (e) => {
       break;
     }
     default:
-      if (route.name === 'category' && categoryAction(action, el, route.id)) scheduleRender();
+      if (upcomingAction(action, el)) scheduleRender();
+      else if (route.name === 'category' && categoryAction(action, el, route.id)) scheduleRender();
       else if (route.name === 'dashboard' && dashboardAction(action, el)) scheduleRender();
   }
+});
+
+// Dropdowns and date pickers that change what's shown: the list filter and the custom Upcoming range.
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (!shell || !el.matches) return;
+  if (el.matches('[data-list-filter]')) setListFilter(el.value);
+  else if (upcomingRangeChange(el)) scheduleRender();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -361,13 +376,13 @@ document.addEventListener('keydown', (e) => {
   const typing = t.closest?.('input, textarea, select, [contenteditable="true"]');
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
-    if (!hasOverlay()) openSearch();
+    if (!hasOverlay()) searchBar?.focus();
     return;
   }
   if (hasOverlay() || typing || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === '/') {
     e.preventDefault();
-    openSearch();
+    searchBar?.focus();
   } else if (e.key === 'n' || e.key === 'N') {
     e.preventDefault();
     newTask(null);

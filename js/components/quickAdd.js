@@ -6,6 +6,7 @@ import { dueLabel, dueTone, todayISO } from '../utils/dates.js';
 import { esc, prefs } from '../utils/dom.js';
 import { parseQuickAdd } from '../utils/quickadd.js';
 import { openCategoryEditor } from './categoryEditor.js';
+import { getListFilter } from './listFilter.js';
 import { icons } from './icons.js';
 import { toast } from './toast.js';
 
@@ -34,7 +35,9 @@ export function mountQuickAdd(root, { mode, categoryId = null }) {
   const meta = form.nextElementSibling;
   const input = form.elements.q;
   const mem = memory[mode];
-  let listId = mode === 'focus' ? defaultList() : categoryId;
+  // When the "All lists" filter is set to one list, new tasks go into that list.
+  const fixed = mode === 'focus' ? getListFilter() : '';
+  let listId = mode === 'focus' ? fixed || defaultList() : categoryId;
 
   const parse = () => parseQuickAdd(input.value, todayISO(), resolveList);
   // Starred by default in focus mode, unless a later date is typed (it's not for today then).
@@ -48,7 +51,10 @@ export function mountQuickAdd(root, { mode, categoryId = null }) {
     const chips = [
       `<button type="button" class="qa-chip qa-star${star ? ' on' : ''}" data-qa-star aria-pressed="${star}" title="${star ? 'Will be added to Today’s focus' : 'Add to Today’s focus'}">${icons.star}<span>${star ? 'Today’s focus' : 'Focus'}</span></button>`,
     ];
-    if (mode === 'focus') {
+    if (mode === 'focus' && fixed && !p.categoryId) {
+      const c = findCategory(target);
+      chips.push(`<span class="chip chip-cat" style="--accent:${colorHex(c?.color)}"><span class="dot"></span>Adds to ${esc(c?.icon || '')} ${esc(c?.name || '')}</span>`);
+    } else if (mode === 'focus') {
       const cats = getState().categories;
       chips.push(
         `<label class="qa-chip qa-list" style="--accent:${colorHex(findCategory(target)?.color)}"><span class="dot"></span><select aria-label="List">${cats

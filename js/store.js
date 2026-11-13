@@ -345,9 +345,10 @@ export const doneToday = () =>
  * `upNext` is the single task to do next: one already in progress, otherwise the most important
  * (priority, then overdue before today, then oldest date, then starred).
  */
-export function focusTasks(today = todayISO()) {
-  const od = overdue(today);
-  const forToday = state.tasks
+export function focusTasks(today = todayISO(), { categoryId = '' } = {}) {
+  const pool = categoryId ? state.tasks.filter((t) => t.categoryId === categoryId) : state.tasks;
+  const od = sortTasks(pool.filter((t) => isOpen(t) && t.dueDate && t.dueDate < today));
+  const forToday = pool
     .filter((t) => isOpen(t) && !(t.dueDate && t.dueDate < today) && (t.focus || t.dueDate === today))
     .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || Number(b.focus) - Number(a.focus) || a.order - b.order);
   const all = [...od, ...forToday];
@@ -372,6 +373,16 @@ export function focusTasks(today = todayISO()) {
     today: forToday.filter((t) => t !== upNext),
     total: all.length,
     overdueCount: od.length,
+  };
+}
+
+/** Open tasks for the Upcoming view (optionally one list): overdue, dated from today on, and undated. */
+export function upcomingTasks({ categoryId = '', today = todayISO() } = {}) {
+  const open = sortTasks(state.tasks.filter((t) => isOpen(t) && (!categoryId || t.categoryId === categoryId)));
+  return {
+    overdue: open.filter((t) => t.dueDate && t.dueDate < today),
+    dated: open.filter((t) => t.dueDate && t.dueDate >= today),
+    noDate: open.filter((t) => !t.dueDate),
   };
 }
 
@@ -408,16 +419,19 @@ export function allTags(tasks = state.tasks) {
   return [...counts].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-export function search(query) {
+/** Search titles, notes and tags ("#tag" searches tags only). Optionally within one list. */
+export function search(query, { categoryId = '' } = {}) {
   const q = query.trim().toLowerCase();
   if (!q) return { tasks: [], categories: [], total: 0 };
   const byTag = q.startsWith('#');
   const term = byTag ? q.slice(1) : q;
-  const categories = byTag ? [] : state.categories.filter((c) => c.name.toLowerCase().includes(term));
-  const matches = state.tasks.filter((t) =>
-    byTag
-      ? t.tags.some((tag) => tag.startsWith(term))
-      : t.title.toLowerCase().includes(term) || t.notes.toLowerCase().includes(term) || t.tags.some((tag) => tag.includes(term)),
+  const categories = byTag || categoryId ? [] : state.categories.filter((c) => c.name.toLowerCase().includes(term));
+  const matches = state.tasks.filter(
+    (t) =>
+      (!categoryId || t.categoryId === categoryId) &&
+      (byTag
+        ? t.tags.some((tag) => tag.startsWith(term))
+        : t.title.toLowerCase().includes(term) || t.notes.toLowerCase().includes(term) || t.tags.some((tag) => tag.includes(term))),
   );
   const sorted = [...sortTasks(matches.filter(isOpen)), ...matches.filter((t) => !isOpen(t))];
   return { tasks: sorted.slice(0, 60), categories, total: matches.length };

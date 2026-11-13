@@ -8,6 +8,7 @@ import { icons } from '../components/icons.js';
 import { ring } from '../components/ring.js';
 import { taskActions, taskList } from '../components/taskItem.js';
 import { mountQuickAdd, quickAddHtml } from '../components/quickAdd.js';
+import { getListFilter, listFilterSelect } from '../components/listFilter.js';
 import { ui } from '../ui-state.js';
 
 export function dailyGoal() {
@@ -73,8 +74,9 @@ function upNextCard(t) {
  */
 export function focusPanel({ cap = Infinity, page = false, variant = '' } = {}) {
   const side = variant === 'side';
-  const f = focusTasks();
-  const done = doneToday();
+  const listId = getListFilter(); // "All lists" or one list
+  const f = focusTasks(todayISO(), { categoryId: listId });
+  const done = doneToday().filter((t) => !listId || t.categoryId === listId);
   const showDone = ui.expanded.has('done-today');
 
   let left = cap;
@@ -85,7 +87,8 @@ export function focusPanel({ cap = Infinity, page = false, variant = '' } = {}) 
 
   let head = '';
   if (side) {
-    head = `<div class="section-head"><h2>${icons.target}Focus today</h2>${f.total ? '<a href="#/today">See all</a>' : ''}</div>`;
+    head = `<div class="section-head"><h2>${icons.target}Focus today</h2>${f.total ? '<a href="#/today">See all</a>' : ''}</div>
+      <div class="panel-filter">${listFilterSelect()}</div>`;
   } else if (!page) {
     head = `<header class="panel-head focus-head">
         <div><h2>${icons.target}Today’s focus</h2><p class="muted small">${esc(focusSummary(f))}</p></div>
@@ -94,8 +97,11 @@ export function focusPanel({ cap = Infinity, page = false, variant = '' } = {}) 
   }
 
   let body;
+  const where = listId ? ` in ${esc(findCategory(listId)?.name || 'this list')}` : '';
   if (!f.total && side) {
-    body = `<div class="empty compact"><div class="big">✨</div><h3>All clear</h3><p>Nothing due or overdue today. Star ${icons.star} a task to pin it here.</p></div>`;
+    body = `<div class="empty compact"><div class="big">✨</div><h3>All clear</h3><p>Nothing due or overdue${where} today. Star ${icons.star} a task to pin it here.</p></div>`;
+  } else if (!f.total && listId) {
+    body = `<div class="empty compact"><div class="big">✨</div><h3>All clear${where}</h3><p>Nothing due, overdue or starred${where} today.</p></div>`;
   } else if (!f.total) {
     body = done.length
       ? `<div class="empty compact"><div class="big">🎉</div><h3>All done for today</h3><p>You finished ${done.length} ${plural(done.length, 'task')}. Enjoy the rest of your day.</p></div>`

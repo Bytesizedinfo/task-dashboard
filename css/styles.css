@@ -845,6 +845,9 @@ a.stat:hover {
 .dash-bento {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(300px, 360px);
+  /* Focus today (side column) spans two rows, so Upcoming sits right under the list cards;
+     any extra height from a long Focus panel goes to the last row. */
+  grid-template-rows: auto auto 1fr;
   grid-auto-flow: row dense;
   gap: 26px;
   align-items: start;
@@ -860,6 +863,7 @@ a.stat:hover {
 
 .dpanel.span-narrow {
   grid-column: span 1;
+  grid-row: span 2;
 }
 
 .dpanel.span-full {
@@ -3268,6 +3272,229 @@ select.input option {
   color: var(--text-2);
 }
 
+/* ---------- Search bar (top of every page) ---------- */
+
+.topbar {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  margin-bottom: 24px;
+}
+
+.searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 12px 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel-solid) 86%, transparent);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-1);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchbar:focus-within {
+  border-color: color-mix(in srgb, var(--brand) 60%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 14%, transparent), var(--shadow-1);
+}
+
+.searchbar > .i {
+  width: 18px;
+  height: 18px;
+  color: var(--text-3);
+}
+
+.sb-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+}
+
+.sb-input::placeholder {
+  color: var(--text-3);
+}
+
+.sb-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.searchbar kbd {
+  margin-left: 0;
+}
+
+.search-pop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(70vh, 620px);
+  padding: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 18px;
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--panel-solid) 96%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-2);
+  animation: pop-in 0.16s var(--ease);
+}
+
+.search-pop .task {
+  background: var(--field);
+}
+
+.search-pop p {
+  margin: 0;
+}
+
+.sp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* ---------- "All lists" filter ---------- */
+
+.list-filter {
+  --accent: var(--text-3);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 10px 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+}
+
+.list-filter.on {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.list-filter .dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.list-filter select {
+  -webkit-appearance: none;
+  appearance: none;
+  max-width: 190px;
+  padding: 0 16px 0 0;
+  margin-right: -16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.list-filter select option {
+  background: var(--panel-solid);
+  color: var(--text);
+}
+
+.list-filter > .i {
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+}
+
+.list-filter:focus-within {
+  outline: 2px solid var(--brand-soft);
+  outline-offset: 2px;
+}
+
+.panel-filter {
+  margin: -4px 0 12px;
+}
+
+.head-stack {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* ---------- Upcoming ---------- */
+
+.up-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.up-controls.compact {
+  margin-bottom: 14px;
+}
+
+.up-controls.compact .seg button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+.up-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 18px;
+}
+
+.up-range .field {
+  flex: 1 1 160px;
+  max-width: 220px;
+}
+
+.up-sub {
+  color: var(--text-3);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.up-panel {
+  padding: 18px;
+}
+
+.up-panel .task {
+  background: var(--field);
+}
+
+.up-panel .group {
+  margin-bottom: 16px;
+}
+
 /* ---------- Sign-in screen ---------- */
 
 .login-card {
@@ -3594,11 +3821,13 @@ h2.with-icon > .i {
 @media (max-width: 1100px) {
   .dash-bento {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
   }
 
   .dpanel.span-wide,
   .dpanel.span-narrow {
     grid-column: 1 / -1;
+    grid-row: auto;
   }
 }
 
@@ -3612,7 +3841,24 @@ h2.with-icon > .i {
   }
 
   .main {
-    padding: calc(18px + env(safe-area-inset-top)) 16px calc(116px + env(safe-area-inset-bottom));
+    padding: calc(14px + env(safe-area-inset-top)) 16px calc(116px + env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    top: calc(8px + env(safe-area-inset-top));
+    margin-bottom: 18px;
+  }
+
+  .searchbar {
+    height: 44px;
+  }
+
+  .search-pop {
+    max-height: calc(100dvh - 180px);
+  }
+
+  .head-stack {
+    align-items: flex-end;
   }
 
   .page-head {
@@ -3839,6 +4085,7 @@ h2.with-icon > .i {
   .input,
   .quick-add input,
   .search-bar input,
+  .sb-input,
   .tag-input input {
     font-size: 16px;
   }
