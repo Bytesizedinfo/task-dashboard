@@ -68,9 +68,11 @@ function upNextCard(t) {
 }
 
 /**
- * @param {object} o  cap: max rows under "Up next" (rest link to Today) · page: rendering on the Today page
+ * @param {object} o  cap: max rows under "Up next" (rest link to Today) · page: rendering on the Today page ·
+ *                    variant 'side': the compact "Focus today" side panel on the dashboard (no goal ring)
  */
-export function focusPanel({ cap = Infinity, page = false } = {}) {
+export function focusPanel({ cap = Infinity, page = false, variant = '' } = {}) {
+  const side = variant === 'side';
   const f = focusTasks();
   const done = doneToday();
   const showDone = ui.expanded.has('done-today');
@@ -81,15 +83,20 @@ export function focusPanel({ cap = Infinity, page = false } = {}) {
   const td = f.today.slice(0, Math.max(0, left));
   const hidden = f.overdue.length + f.today.length - od.length - td.length;
 
-  const head = page
-    ? ''
-    : `<header class="panel-head focus-head">
+  let head = '';
+  if (side) {
+    head = `<div class="section-head"><h2>${icons.target}Focus today</h2>${f.total ? '<a href="#/today">See all</a>' : ''}</div>`;
+  } else if (!page) {
+    head = `<header class="panel-head focus-head">
         <div><h2>${icons.target}Today’s focus</h2><p class="muted small">${esc(focusSummary(f))}</p></div>
         ${goalMeter()}
       </header>`;
+  }
 
   let body;
-  if (!f.total) {
+  if (!f.total && side) {
+    body = `<div class="empty compact"><div class="big">✨</div><h3>All clear</h3><p>Nothing due or overdue today. Star ${icons.star} a task to pin it here.</p></div>`;
+  } else if (!f.total) {
     body = done.length
       ? `<div class="empty compact"><div class="big">🎉</div><h3>All done for today</h3><p>You finished ${done.length} ${plural(done.length, 'task')}. Enjoy the rest of your day.</p></div>`
       : `<div class="empty compact"><div class="big">✨</div><h3>Nothing planned yet</h3><p>Star ${icons.star} a task in any list to pin it here, or add one above.</p></div>`;
@@ -100,20 +107,20 @@ export function focusPanel({ cap = Infinity, page = false } = {}) {
         od.length
           ? `<section class="group group-overdue">
               <div class="group-head"><h3 class="group-title">Overdue<span class="count">${f.overdue.length}</span></h3>
-                <button type="button" class="btn btn-ghost sm" data-action="move-overdue">${icons.arrowRight}<span>Move all to today</span></button></div>
+                <button type="button" class="btn btn-ghost sm" data-action="move-overdue" title="Move all overdue tasks to today">${icons.arrowRight}<span>${side ? 'Move to today' : 'Move all to today'}</span></button></div>
               ${taskList(od, { showCategory: true })}
             </section>`
           : ''
       }
       ${td.length ? `<section class="group"><h3 class="group-title">Today<span class="count">${f.today.length}</span></h3>${taskList(td, { showCategory: true })}</section>` : ''}
-      ${hidden > 0 ? `<a class="more-link" href="#/today">See all ${f.total} in Today ${icons.arrowRight}</a>` : ''}`;
+      ${hidden > 0 ? `<a class="more-link" href="#/today">${side ? `+${hidden} more` : `See all ${f.total} in Today ${icons.arrowRight}`}</a>` : ''}`;
   }
 
   return `${head}
     ${quickAddHtml({ mode: 'focus', placeholder: 'Add a task for today…' })}
     ${body}
     ${
-      done.length
+      done.length && !side
         ? `<section class="group group-done">
             <button type="button" class="group-title as-button" data-action="toggle-section" data-key="done-today" aria-expanded="${showDone}">${icons.chevron}Completed today<span class="count">${done.length}</span></button>
             ${showDone ? taskList(done, { showCategory: true }) : ''}

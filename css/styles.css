@@ -841,13 +841,12 @@ a.stat:hover {
   font-weight: 500;
 }
 
-/* Bento grid of customisable panels: Focus (wide) · At a glance (narrow) · Your lists (full) */
+/* Dashboard sections (original layout): stat tiles (full width) · Your lists (wide) · Focus today (side) */
 .dash-bento {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: auto 1fr; /* a tall Focus panel stretches row 2, so the side panels stay stacked */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(300px, 360px);
   grid-auto-flow: row dense;
-  gap: 22px;
+  gap: 26px;
   align-items: start;
 }
 
@@ -857,87 +856,6 @@ a.stat:hover {
 
 .dpanel.span-wide {
   grid-column: span 2;
-  grid-row: span 2;
-}
-
-/* Your lists in the narrow column (wide screens): compact, clickable rows */
-@media (min-width: 1101px) {
-  .dpanel.span-narrow .cat-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .dpanel.span-narrow .cat-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      'emoji name ring'
-      'emoji sub ring';
-    align-items: center;
-    column-gap: 12px;
-    row-gap: 1px;
-    min-height: 0;
-    padding: 11px 12px 11px 12px;
-    border-radius: 14px;
-  }
-
-  .dpanel.span-narrow .cat-card::after {
-    display: none;
-  }
-
-  .dpanel.span-narrow .cat-card:hover {
-    transform: translateX(3px);
-  }
-
-  .dpanel.span-narrow .cat-top {
-    display: contents;
-  }
-
-  .dpanel.span-narrow .cat-emoji {
-    grid-area: emoji;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    font-size: 19px;
-  }
-
-  .dpanel.span-narrow .ring-wrap {
-    grid-area: ring;
-    width: 40px;
-    height: 40px;
-  }
-
-  .dpanel.span-narrow .ring-label {
-    font-size: 9.5px;
-  }
-
-  .dpanel.span-narrow .cat-card h3 {
-    grid-area: name;
-    align-self: end;
-    font-size: 15px;
-  }
-
-  .dpanel.span-narrow .cat-sub {
-    grid-area: sub;
-    align-self: start;
-    font-size: 12.5px;
-  }
-
-  .dpanel.span-narrow .cat-next {
-    display: none;
-  }
-
-  .dpanel.span-narrow .add-card {
-    flex-direction: row;
-    min-height: 50px;
-    border-radius: 14px;
-    font-size: 14px;
-  }
-
-  .dpanel.span-narrow .add-card .i {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 .dpanel.span-narrow {
@@ -949,7 +867,59 @@ a.stat:hover {
 }
 
 .glance .stats {
+  gap: 14px;
+}
+
+/* "Focus today" side panel (dashboard): compact version of Today's focus */
+.focus-side {
+  padding: 18px;
+}
+
+.focus-side .section-head h2 .i {
+  color: var(--brand-soft);
+}
+
+.focus-side .qa-meta {
+  margin-bottom: 14px;
+}
+
+.focus-side .quick-add {
+  padding-left: 12px;
+}
+
+.focus-side .up-next {
+  gap: 8px;
+  margin: 2px 0 18px;
+  padding: 12px 14px 14px;
+  border-radius: 16px;
+}
+
+.focus-side .un-title {
+  font-size: 16px;
+}
+
+.focus-side .un-main {
   gap: 12px;
+}
+
+.focus-side .un-main .check {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+
+.focus-side .un-actions .btn {
+  flex: 1;
+}
+
+.focus-side .group {
+  margin-bottom: 16px;
+}
+
+.focus-side .group-head .btn {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 12.5px;
 }
 
 /* Customise mode */

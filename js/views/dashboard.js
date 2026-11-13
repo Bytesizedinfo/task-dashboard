@@ -1,6 +1,6 @@
-// Home dashboard: customisable panels in a bento grid.
-// Today's focus (what to do now) leads; At a glance and Your lists follow.
-import { categoryStats, doneThisWeek, doneToday, dueToday, getState, inProgress, overdue, upcomingBuckets } from '../store.js';
+// Home dashboard (the original layout): a row of stat tiles, big list cards, and a "Focus today" side panel.
+// The sections can still be reordered or hidden with Customise.
+import { categoryStats, doneThisWeek, dueToday, getState, inProgress, overdue } from '../store.js';
 import { colorHex } from '../constants.js';
 import { dueLabel, dueTone, greeting, longDate, todayISO } from '../utils/dates.js';
 import { esc, plural, prefs } from '../utils/dom.js';
@@ -11,30 +11,31 @@ import { toast } from '../components/toast.js';
 import { ui } from '../ui-state.js';
 import { focusPanel, mountFocus } from './focus.js';
 
-// Desktop: Focus fills two columns (and two rows); At a glance and Your lists stack in the third column.
+// Desktop: stat tiles across the top; big list cards on the left (2 columns); Focus today on the right.
 const PANELS = {
-  focus: { title: 'Today’s focus', span: 'wide', render: () => `<div class="panel focus-panel">${focusPanel({ cap: 6 })}</div>` },
-  glance: { title: 'At a glance', span: 'narrow', render: glancePanel },
-  lists: { title: 'Your lists', span: 'narrow', render: listsPanel },
+  glance: { title: 'At a glance', span: 'full', render: glancePanel },
+  lists: { title: 'Your lists', span: 'wide', render: listsPanel },
+  focus: { title: 'Focus today', span: 'narrow', render: () => `<div class="panel focus-panel focus-side">${focusPanel({ cap: 6, variant: 'side' })}</div>` },
 };
-
-/** One line under the greeting, complementing (not repeating) the focus panel. */
-function headerLine() {
-  const done = doneToday().length;
-  const b = upcomingBuckets();
-  const soon = b.tomorrow.length + b.week.length;
-  const parts = [];
-  if (done) parts.push(`${done} ${plural(done, 'task')} done today`);
-  if (soon) parts.push(`${soon} coming up in the next 7 days`);
-  return parts.length ? parts.join(' · ') : 'A fresh start. Plan your day below.';
-}
 const DEFAULT_LAYOUT = Object.keys(PANELS).map((id) => ({ id, hidden: false }));
+const LAYOUT_PREF = 'dash.layout.v2'; // new key, so layouts saved for the previous design don't carry over
+
+/** The line under the greeting: what's due today. */
+function headerLine() {
+  const today = todayISO();
+  const od = overdue(today).length;
+  const dt = dueToday(today).length;
+  if (!od && !dt) return 'Nothing due today. Enjoy the calm.';
+  let line = dt ? `${dt} ${plural(dt, 'task')} due today` : 'Nothing new due today';
+  if (od) line += `, ${od} overdue`;
+  return line + '.';
+}
 
 let editing = false;
 
 /** Saved panel order + visibility (per device). Unknown panels are dropped, new ones appended. */
 export function getLayout() {
-  const saved = prefs.get('dash.layout', null);
+  const saved = prefs.get(LAYOUT_PREF, null);
   const out = [];
   if (Array.isArray(saved)) {
     saved.forEach((p) => {
@@ -46,7 +47,7 @@ export function getLayout() {
 }
 
 function saveLayout(layout) {
-  prefs.set('dash.layout', layout);
+  prefs.set(LAYOUT_PREF, layout);
 }
 
 /** Reorder panels (what a drag in Customise mode does). */
@@ -160,8 +161,7 @@ function glancePanel() {
   const od = overdue(today).length;
   const dt = dueToday(today).length;
   return `<div class="glance">
-    <div class="section-head"><h2>${icons.pulse}At a glance</h2></div>
-    <div class="stats">
+    <div class="stats" aria-label="At a glance">
       ${stat('overdue', od, 'Overdue', icons.alert, '#/today')}
       ${stat('today', dt, 'Due today', icons.target, '#/today')}
       ${stat('doing', inProgress().length, 'In progress', icons.progress)}
@@ -183,7 +183,7 @@ function listsPanel() {
   const today = todayISO();
   return `<div class="lists-panel">
     <div class="section-head">
-      <h2>${icons.list}Your lists</h2>
+      <h2>Your lists</h2>
       <button type="button" class="btn btn-ghost sm" data-action="new-category">${icons.plus}<span>New list</span></button>
     </div>
     <div class="cat-grid">

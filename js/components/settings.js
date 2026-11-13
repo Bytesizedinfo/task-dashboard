@@ -71,7 +71,7 @@ export function openSettings() {
             <button type="button" class="icon-btn" data-act="goal-dec" aria-label="Lower the goal">${icons.minus}</button>
             <output class="goal-val">${dailyGoal()}</output>
             <button type="button" class="icon-btn" data-act="goal-inc" aria-label="Raise the goal">${icons.plus}</button>
-            <span class="muted small">tasks a day: fills the ring in Today’s focus</span>
+            <span class="muted small">tasks a day: fills the ring on the Today page</span>
           </div>
         </section>
         <section class="settings-section"><h3 class="field-label">Backup</h3>
